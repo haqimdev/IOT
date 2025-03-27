@@ -10,12 +10,9 @@ class MachineStatusApp2:
         # Initialize 
         self.master = master
         self.temp = temp
-        self.db = None
-
-           
+        self.db = None  
 
     def setup_gpio(self, button_pin, time, status, machine_id):
-
         GPIO.setmode(GPIO.BCM)  # Use BCM numbering
         # self.button_pin = 17  # GPIO pin number for the button
         # GPIO.setup(self.button_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)  # Set up the button pin as input with pull-up resistor
@@ -65,12 +62,18 @@ class MachineStatusApp2:
 
 # Example usage
 if __name__ == "__main__":
+    
     app = MachineStatusApp2(None, None)
     app.connect()
-    app.dis()
+    # app.dis() 
 
     if app.is_connected():
-        print('Connected')
-        app.setup_gpio(21, datetime.now(), 'Green', 1)
-        app.setup_gpio(22, datetime.now(), 'Green', 2)
+        try:
+            while True:
+                # print('Connected')
+                app.setup_gpio(21, datetime.now(), 'Green', 1)
+                app.setup_gpio(22, datetime.now(), 'Green', 2)
+        except KeyboardInterrupt:
+            # print('Diconnected')
+            GPIO.cleanup()
 
