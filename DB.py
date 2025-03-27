@@ -26,48 +26,66 @@ class DatabaseConnector:
             return None
 
     def disconnect(self):
-        if self.connection:
+        try:
             self.connection.close()
-            print("Success", "Disconnected from the database successfully.")
-        else:
-            print("Database Error", "No connection to close.")
-
-    def save_to_database(self, start_time, status, machine_id):
-        if self.connection:
-            cursor = self.connection.cursor()
-            query = "INSERT INTO machine_status (start_time, status, machine_id) VALUES (%s, %s, %s)"
-            cursor.execute(query, (start_time, status, machine_id))
-            self.connection.commit()
-        else:
-            print("Database Error", "Failed to connect to the database.")
-            
-    def update_to_database(self, stop_time, status, machine_id,id):
-        if self.connection:
-            cursor = self.connection.cursor()
-            # query = "INSERT INTO machine_status (stop_time, status, machine_id) VALUES (%s, %s, %s)"
-            query = "UPDATE machine_status SET stop_time = %s, status = %s WHERE machine_id = %s AND id = %s"
-            # cursor.execute()
-            cursor.execute(query, (stop_time, status, machine_id,id))
-            self.connection.commit()
-        else:
-            print("Database Error", "Failed to connect to the database.")
-    
-    def get_last_created_id(self, machine_id):
-        if self.connection:
-            cursor = self.connection.cursor()
-            query = "SELECT id FROM machine_status WHERE machine_id = %s ORDER BY id DESC LIMIT 1"
-            cursor.execute(query, (machine_id,))
-            result = cursor.fetchone()
-            return result[0] if result else None
-        else:
-            print("Database Error", "Failed to connect to the database.")
+            if self.connection:
+                self.connection.close()
+                print("Success", "Disconnected from the database successfully.")
+            else:
+                print("Database Error", "No connection to close.")
+        except pymysql.Error as e:
+            print("Database Connection Error", f"Error: {e}")
             return None
-    def is_connected(self):
+            
+    def check_is_connected(self):
         try:
             if self.connection and self.connection.open:
                 return True
             else:
                 return False
+        except pymysql.Error as e:
+            print("Database Error", f"Error: {e}")
+            return False
+
+    def save_to_database(self, start_time, status, machine_id):
+        try:
+            if self.connection:
+                cursor = self.connection.cursor()
+                query = "INSERT INTO machine_status (start_time, status, machine_id) VALUES (%s, %s, %s)"
+                cursor.execute(query, (start_time, status, machine_id))
+                self.connection.commit()
+            else:
+                print("Database Error", "Failed to connect to the database.")
+        except pymysql.Error as e:
+            print("Database Error", f"Error: {e}")
+            return False               
+            
+    def update_to_database(self, stop_time, status, machine_id,id):
+        try:
+            if self.connection:
+                cursor = self.connection.cursor()
+                # query = "INSERT INTO machine_status (stop_time, status, machine_id) VALUES (%s, %s, %s)"
+                query = "UPDATE machine_status SET stop_time = %s, status = %s WHERE machine_id = %s AND id = %s"
+                # cursor.execute()
+                cursor.execute(query, (stop_time, status, machine_id,id))
+                self.connection.commit()
+            else:
+                print("Database Error", "Failed to connect to the database.")
+        except pymysql.Error as e:
+            print("Database Error", f"Error: {e}")
+            return False
+    
+    def get_last_created_id(self, machine_id):
+        try:
+            if self.connection:
+                cursor = self.connection.cursor()
+                query = "SELECT id FROM machine_status WHERE machine_id = %s ORDER BY id DESC LIMIT 1"
+                cursor.execute(query, (machine_id,))
+                result = cursor.fetchone()
+                return result[0] if result else None
+            else:
+                print("Database Error", "Failed to connect to the database.")
+                return None
         except pymysql.Error as e:
             print("Database Error", f"Error: {e}")
             return False
