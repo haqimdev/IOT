@@ -1,6 +1,6 @@
 from tkinter import Tk, Label, Entry, Button, StringVar, messagebox
 from tkinter import ttk
-from tkcalendar import DateEntry
+# from tkcalendar import DateEntry
 import pymysql.cursors
 from datetime import datetime
 from DB import DatabaseConnector
