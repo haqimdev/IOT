@@ -67,21 +67,24 @@ if __name__ == "__main__":
     app.connect()
     # app.dis()
     rodi_green_temp = 0
-    rodi_red_temp = 0
     rodi_yellow_temp = 0
+    rodi_red_temp = 0
     lift_green_temp = 0
-    lift_red_temp = 0
     lift_yellow_temp = 0
-
+    lift_red_temp = 0
 
     if app.is_connected():
         try:
             while True:
-                # print('Connected')
-                # app.setup_gpio(4, datetime.now(), 'Green', 1)
-                # app.setup_gpio(17, datetime.now(), 'Green', 2)               
-               rodi_green_temp=  app.setup_gpio(4,rodi_green_temp, datetime.now(), 'Green', 1)
-               lift_green_temp= app.setup_gpio(17, lift_green_temp, datetime.now(), 'Green', 2)
+                # Check the machine state and update the temp variable accordingly
+                #RODI Tank
+                rodi_green_temp=  app.setup_gpio(4,rodi_green_temp, datetime.now(), 'Green', 1)
+                rodi_yellow_temp =  app.setup_gpio(27, rodi_yellow_temp, datetime.now(), 'Yellow', 1)
+                rodi_red_temp =  app.setup_gpio(21, rodi_red_temp, datetime.now(), 'Red', 1)
+                #Lifting Tank
+                lift_green_temp= app.setup_gpio(13, lift_green_temp, datetime.now(), 'Green', 2)
+                lift_yellow_temp = app.setup_gpio(26, lift_yellow_temp, datetime.now(), 'Yellow', 2)
+                lift_red_temp = app.setup_gpio(23, lift_red_temp, datetime.now(), 'Yellow', 2)
 
         except KeyboardInterrupt:
             print("\nProgram interrupted by user. Exiting...")
