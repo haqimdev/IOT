@@ -1,10 +1,13 @@
 import pymysql.cursors
 from datetime import datetime
 from DB import DatabaseConnector
+from GUI import ConnectionStatusGUI
 import time  # Import the time module
 
 from gpiozero import Button
 
+import tkinter as tk
+from tkinter import scrolledtext
 
 class MachineStatusApp2:
     def __init__(self, master, temp):
@@ -13,16 +16,16 @@ class MachineStatusApp2:
         self.temp = 0
         self.db = None
 
-    def setup_gpio(self, button_pin,temp, time, status, machine_id):
+    def setup_gpio(self, button_pin,temp, time, machine_id):
     # def setup_gpio(self, button_pin, temp):
         btn = Button(button_pin)
         if btn.is_pressed and temp == 0:
             print(f"Button on pin {button_pin} is pressed")     
-            self.start_run(time, status, machine_id)
+            self.start_run(time, 1, machine_id)
             temp = 1
         elif not btn.is_pressed and temp == 1:
             print(f"Button on pin {button_pin} is not pressed")
-            self.stop_run(time, status, machine_id)
+            self.stop_run(time, 0, machine_id)
             temp = 0
         return temp
         
@@ -59,32 +62,59 @@ class MachineStatusApp2:
     def dis(self):
         self.db.disconnect()
 
+    
+
 
 # Example usage
 if __name__ == "__main__":
+    root = tk.Tk()
+    gui = ConnectionStatusGUI(root)
 
     app = MachineStatusApp2(None, None)
-    app.connect()
-    # app.dis()
-    rodi_green_temp = 0
-    rodi_yellow_temp = 0
-    rodi_red_temp = 0
-    lift_green_temp = 0
-    lift_yellow_temp = 0
-    lift_red_temp = 0
+    if app.connect():
+        gui.update_connection_status("Connected")
+        gui.add_log_entry("Database connection established.")
+    else:
+        gui.update_connection_status("Disconnected")
+        gui.add_log_entry("Failed to connect to the database.")
+
+    rodi_power_on_temp = 0
+    rodi_siren_temp = 0
+    rodi_revolving_light_temp = 0
+    lift_power_on_temp = 0
+    lift_siren_temp = 0
+    lift_revolving_light_temp = 0
 
     if app.is_connected():
         try:
-            while True:
-                # Check the machine state and update the temp variable accordingly
-                #RODI Tank
-                rodi_green_temp=  app.setup_gpio(4,rodi_green_temp, datetime.now(), 'Green', 1)
-                rodi_yellow_temp =  app.setup_gpio(27, rodi_yellow_temp, datetime.now(), 'Yellow', 1)
-                rodi_red_temp =  app.setup_gpio(21, rodi_red_temp, datetime.now(), 'Red', 1)
-                #Lifting Tank
-                lift_green_temp= app.setup_gpio(13, lift_green_temp, datetime.now(), 'Green', 2)
-                lift_yellow_temp = app.setup_gpio(26, lift_yellow_temp, datetime.now(), 'Yellow', 2)
-                lift_red_temp = app.setup_gpio(23, lift_red_temp, datetime.now(), 'Yellow', 2)
+            # while True:
+            # Check GPIO pins and update GUI
+            rodi_power_on_temp = app.setup_gpio(4, rodi_power_on_temp, datetime.now(), 1)
+            gui.update_gpio_status(4, rodi_power_on_temp)
 
+            rodi_siren_temp = app.setup_gpio(27, rodi_siren_temp, datetime.now(), 1)
+            gui.update_gpio_status(27, rodi_siren_temp)
+
+            rodi_revolving_light_temp = app.setup_gpio(21, rodi_revolving_light_temp, datetime.now(), 1)
+            gui.update_gpio_status(21, rodi_revolving_light_temp)
+
+            lift_power_on_temp = app.setup_gpio(13, lift_power_on_temp, datetime.now(), 2)
+            gui.update_gpio_status(13, lift_power_on_temp)
+
+            lift_siren_temp = app.setup_gpio(26, lift_siren_temp, datetime.now(), 2)
+            gui.update_gpio_status(26, lift_siren_temp)
+# 
+            lift_revolving_light_temp = app.setup_gpio(23, lift_revolving_light_temp, datetime.now(), 2)
+            gui.update_gpio_status(23, lift_revolving_light_temp)
+
+            time.sleep(1)  # Add a delay to avoid excessive CPU usage
         except KeyboardInterrupt:
             print("\nProgram interrupted by user. Exiting...")
+            gui.add_log_entry("Program interrupted by user. Exiting...")
+            app.dis()
+            gui.update_connection_status("Disconnected")
+            gui.add_log_entry("Database disconnected.")
+    else:
+        gui.add_log_entry("Database is not connected.")
+
+    root.mainloop()
