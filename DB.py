@@ -36,7 +36,7 @@ class DatabaseConnector:
         except pymysql.Error as e:
             print("Database Connection Error", f"Error: {e}")
             return None
-            
+
     def check_is_connected(self):
         try:
             if self.connection and self.connection.open:
@@ -47,40 +47,56 @@ class DatabaseConnector:
             print("Database Error", f"Error: {e}")
             return False
 
-    def save_to_database(self, start_time, status, machine_id):
+    def log_insert_to_db(self, start_time, signal_id, machine_id):
         try:
             if self.connection:
                 cursor = self.connection.cursor()
-                query = "INSERT INTO machine_status (start_time, status, machine_id) VALUES (%s, %s, %s)"
-                cursor.execute(query, (start_time, status, machine_id))
-                self.connection.commit()
-            else:
-                print("Database Error", "Failed to connect to the database.")
-        except pymysql.Error as e:
-            print("Database Error", f"Error: {e}")
-            return False               
-            
-    def update_to_database(self, stop_time, status, machine_id,id):
-        try:
-            if self.connection:
-                cursor = self.connection.cursor()
-                # query = "INSERT INTO machine_status (stop_time, status, machine_id) VALUES (%s, %s, %s)"
-                query = "UPDATE machine_status SET stop_time = %s, status = %s WHERE machine_id = %s AND id = %s"
-                # cursor.execute()
-                cursor.execute(query, (stop_time, status, machine_id,id))
+                query = "INSERT INTO machine_log (start_time, signal_id, machine_id) VALUES (%s, %s, %s)"
+#                 query = "INSERT INTO machine_status (start_time, signal, status, machine_id) VALUES (?, ?, ?, ?)"
+                cursor.execute(query, (start_time, signal_id, machine_id))
                 self.connection.commit()
             else:
                 print("Database Error", "Failed to connect to the database.")
         except pymysql.Error as e:
             print("Database Error", f"Error: {e}")
             return False
-    
-    def get_last_created_id(self, machine_id):
+
+    def log_update_to_db(self, id, stop_time, signal_id, machine_id):
         try:
             if self.connection:
                 cursor = self.connection.cursor()
-                query = "SELECT id FROM machine_status WHERE machine_id = %s ORDER BY id DESC LIMIT 1"
-                cursor.execute(query, (machine_id,))
+                query = "UPDATE machine_log SET stop_time = %s WHERE machine_id = %s AND signal_id = %s AND id = %s"
+                cursor.execute(query, ( stop_time,  machine_id, signal_id, id))
+                self.connection.commit()
+            else:
+                print("Database Error", "Failed to connect to the database.")
+        except pymysql.Error as e:
+            print("Database Error", f"Error: {e}")
+            return False
+            
+    def status_update_to_db(self, signal_id, status, machine_id):
+        try:
+            if self.connection:
+                cursor = self.connection.cursor()
+                # query = "INSERT INTO machine_status (stop_time, status, machine_id) VALUES (%s, %s, %s)"
+                query = "UPDATE machine_status SET status = %s WHERE signal_id = %s AND machine_id = %s"
+                # query = "UPDATE machine_status SET status = 5 WHERE signal_id = 4 AND machine_id = 1"
+                # cursor.execute()
+                cursor.execute(query, (status,signal_id, machine_id))
+                # cursor.execute(query)
+                self.connection.commit()
+            else:
+                print("Database Error", "Failed to connect to the database.")
+        except pymysql.Error as e:
+            print("Database Error", f"Error: {e}")
+            return False
+
+    def get_last_created_id(self, signal_id, machine_id):
+        try:
+            if self.connection:
+                cursor = self.connection.cursor()
+                query = "SELECT id FROM machine_log WHERE signal_id = %s AND machine_id = %s ORDER BY id DESC LIMIT 1"
+                cursor.execute(query, (signal_id, machine_id,))
                 result = cursor.fetchone()
                 return result[0] if result else None
             else:
@@ -89,4 +105,4 @@ class DatabaseConnector:
         except pymysql.Error as e:
             print("Database Error", f"Error: {e}")
             return False
-            
+
